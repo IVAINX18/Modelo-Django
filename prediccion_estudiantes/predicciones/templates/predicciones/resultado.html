@@ -2,49 +2,228 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Resultado de Predicción</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado de Prediccion</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
             padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .icon-success {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            animation: scaleIn 0.5s ease-out 0.2s both;
+        }
+
+        .icon-error {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
         h2 {
-            color: #333;
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 15px;
         }
-        p {
+
+        .student-name {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .score-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .score-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .score-max {
+            color: rgba(255, 255, 255, 0.8);
             font-size: 18px;
         }
-        a {
-            display: inline-block;
-            margin: 10px;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
+
+        .message {
+            color: #718096;
+            font-size: 16px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 16px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff5f5;
+            border-radius: 10px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 10px;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        a:hover {
-            background-color: #45a049;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        .error {
-            color: red;
-            font-weight: bold;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .score-value {
+                font-size: 38px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    {% if error %}
-        <h2 class="error">Error: {{ error }}</h2>
-    {% else %}
-        <h2>Resultado de la predicción</h2>
-        <p>El estudiante <strong>{{ nombre }}</strong> tiene un puntaje estimado de: 
-           <strong>{{ prediccion }}</strong></p>
-    {% endif %}
-    
-    <a href="/">Volver</a>
-    <a href="{% url 'historial' %}">Ver historial</a>
+    <div class="container">
+        {% if error %}
+            <div class="icon-error">!</div>
+            <h2>Error en la Prediccion</h2>
+            <div class="error-message">{{ error }}</div>
+        {% else %}
+            <div class="icon-success">✓</div>
+            <h2>Prediccion Completada</h2>
+            <div class="student-name">{{ nombre }}</div>
+
+            <div class="score-container">
+                <div class="score-label">Puntaje Estimado</div>
+                <div class="score-value">{{ prediccion }}</div>
+                <div class="score-max">/ 100</div>
+            </div>
+
+            <p class="message">
+                El modelo predice que el estudiante alcanzara un puntaje de <strong>{{ prediccion }}</strong> puntos
+                basandose en los factores de rendimiento proporcionados.
+            </p>
+        {% endif %}
+
+        <div class="button-group">
+            <a href="/" class="btn btn-primary">Nueva Prediccion</a>
+            <a href="{% url 'historial' %}" class="btn btn-secondary">Ver Historial</a>
+        </div>
+    </div>
 </body>
 </html>

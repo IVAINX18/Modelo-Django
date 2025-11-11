@@ -1,23 +1,28 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 import joblib
-# Cargar el dataset (ajusta la ruta si está en otra carpeta)
-df = pd.read_csv(r"/home/project/StudentPerformanceFactors.csv", sep=";")
+import os
 
-# 2️⃣ Seleccionar las columnas que usas en tu formulario
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH = os.path.join(BASE_DIR, "StudentPerformanceFactors.csv")
+MODEL_PATH = os.path.join(BASE_DIR, "prediccion_estudiantes", "modelo_prediccion.pkl")
+SCALER_PATH = os.path.join(BASE_DIR, "prediccion_estudiantes", "scaler.pkl")
+
+df = pd.read_csv(CSV_PATH, sep=";")
+
 columnas = [
     'Hours_Studied', 'Attendance', 'Parental_Involvement',
     'Access_to_Resources', 'Extracurricular_Activities',
     'Sleep_Hours', 'Previous_Scores', 'Motivation_Level'
 ]
 
-X = df[columnas]
+X = df[columnas].copy()
 y = df['Exam_Score']
 
-# 3️⃣ Convertir texto a números
-# Reemplazar valores comunes categóricos con números
 mapeo = {
     'Low': 1,
     'Medium': 2,
@@ -27,27 +32,59 @@ mapeo = {
 }
 
 X = X.replace(mapeo)
-
-# 4️⃣ Asegurar que todas las columnas sean numéricas
 X = X.apply(pd.to_numeric, errors='coerce')
-X = X.fillna(0)  # reemplaza NaN por 0
 
-# 5️⃣ Dividir en entrenamiento y prueba
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+for col in X.columns:
+    if X[col].isnull().any():
+        X[col].fillna(X[col].median(), inplace=True)
 
-# 6️⃣ Entrenar modelo
-modelo = RandomForestRegressor(n_estimators=100, random_state=42)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_scaled = pd.DataFrame(X_scaled, columns=columnas)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42
+)
+
+print("Entrenando modelo con hiperparametros optimizados...")
+
+modelo = GradientBoostingRegressor(
+    n_estimators=200,
+    learning_rate=0.1,
+    max_depth=5,
+    min_samples_split=5,
+    min_samples_leaf=2,
+    subsample=0.8,
+    random_state=42
+)
+
 modelo.fit(X_train, y_train)
 
-# 7️⃣ Evaluar desempeño
 predicciones = modelo.predict(X_test)
 mae = mean_absolute_error(y_test, predicciones)
 r2 = r2_score(y_test, predicciones)
+rmse = np.sqrt(mean_squared_error(y_test, predicciones))
 
-print(f"✅ Entrenamiento completado correctamente")
-print(f"📊 Error absoluto medio: {mae:.2f}")
-print(f"📈 Coeficiente R²: {r2:.2f}")
+print("\n" + "="*60)
+print("RESULTADOS DEL ENTRENAMIENTO")
+print("="*60)
+print(f"Error Absoluto Medio (MAE):     {mae:.3f}")
+print(f"Error Cuadratico Medio (RMSE):  {rmse:.3f}")
+print(f"Coeficiente R2:                 {r2:.4f}")
+print(f"Precision del modelo:           {r2*100:.2f}%")
+print("="*60)
 
-# 8️⃣ Guardar modelo
-joblib.dump(modelo, r'C:\Users\andre\Desktop\MODELO\prediccion_estudiantes\modelo_prediccion.pkl')
-print("💾 Modelo guardado correctamente en 'modelo_prediccion.pkl'")
+importancias = pd.DataFrame({
+    'Caracteristica': columnas,
+    'Importancia': modelo.feature_importances_
+}).sort_values('Importancia', ascending=False)
+
+print("\nIMPORTANCIA DE CARACTERISTICAS:")
+print(importancias.to_string(index=False))
+print("="*60)
+
+joblib.dump(modelo, MODEL_PATH)
+joblib.dump(scaler, SCALER_PATH)
+print(f"\nModelo guardado en: {MODEL_PATH}")
+print(f"Scaler guardado en: {SCALER_PATH}")
+print("\nEntrenamiento completado exitosamente.")
