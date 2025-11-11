@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 import joblib
 # Cargar el dataset (ajusta la ruta si está en otra carpeta)
-df = pd.read_csv(r"D:\Andres\Descargas\StudentPerformanceFactors.csv", sep=";")
+df = pd.read_csv(r"/home/project/StudentPerformanceFactors.csv", sep=";")
 
 # 2️⃣ Seleccionar las columnas que usas en tu formulario
 columnas = [
